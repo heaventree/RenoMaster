@@ -1,0 +1,6 @@
+{
+  "name": "Renovation Planner",
+  "description": "Manage house renovation projects room by room, track categories, save product URLs with automated previews, monitor budgets, and compile final shopping lists.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
