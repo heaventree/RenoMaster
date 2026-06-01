@@ -29,13 +29,15 @@ interface FinalItemsViewProps {
   rooms: Room[];
   categories: Category[];
   statuses: CustomStatus[];
+  currencySymbol: string;
 }
 
 export default function FinalItemsView({
   items,
   rooms,
   categories,
-  statuses
+  statuses,
+  currencySymbol
 }: FinalItemsViewProps) {
   // Only include items where status equals "Final"
   const finalItems = items.filter(item => item.status === "Final");
@@ -52,7 +54,7 @@ export default function FinalItemsView({
 
   const triggerMockExport = (format: 'CSV' | 'Excel') => {
     // CSV compiling simulation
-    let headers = "Item Name,Room Location,Category,Supplier,Quantity,Unit Cost (£),Total Cost (£),URL\n";
+    let headers = `Item Name,Room Location,Category,Supplier,Quantity,Unit Cost (${currencySymbol}),Total Cost (${currencySymbol}),URL\n`;
     const body = finalItems.map(item => {
       const room = rooms.find(r => r.id === item.roomId)?.name || "General";
       const cat = categories.find(c => c.id === item.categoryId)?.name || "General";
@@ -124,7 +126,7 @@ export default function FinalItemsView({
         <div className="p-5 bg-natural-primary text-white rounded-2xl relative overflow-hidden flex flex-col justify-between h-32 shadow-md">
           <span className="text-[9px] uppercase font-bold tracking-widest text-natural-accent/85">Approved Purchase Commitments</span>
           <div className="space-y-0.5">
-            <span className="text-3xl font-serif font-bold text-white">£{totalCost.toFixed(2)}</span>
+            <span className="text-3xl font-serif font-bold text-white">{currencySymbol}{totalCost.toFixed(2)}</span>
             <span className="text-[11px] text-natural-accent/70 block font-medium">Includes shipping feeds & bulk trade price margins</span>
           </div>
         </div>
@@ -140,7 +142,7 @@ export default function FinalItemsView({
         <div className="p-5 bg-white border border-natural-border rounded-2xl flex flex-col justify-between h-32 shadow-sm">
           <span className="text-[9px] uppercase font-bold tracking-widest text-natural-text-muted">VAT Sales Margins</span>
           <div className="space-y-0.5">
-            <span className="text-2xl font-serif font-bold text-natural-text-head">£{totalTax.toFixed(2)}</span>
+            <span className="text-2xl font-serif font-bold text-natural-text-head">{currencySymbol}{totalTax.toFixed(2)}</span>
             <span className="text-[11px] text-natural-text-muted block font-medium">Estimated tax allocations standard in budget</span>
           </div>
         </div>
@@ -167,7 +169,7 @@ export default function FinalItemsView({
                   <th className="py-3 px-4">Supplier</th>
                   <th className="py-3 px-4">Purchase URL</th>
                   <th className="py-3 px-4">Unit Pricing</th>
-                  <th className="py-3 px-4 text-right">Aggregate Total (£)</th>
+                  <th className="py-3 px-4 text-right">Aggregate Total ({currencySymbol})</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-natural-border/40 bg-white">
@@ -226,13 +228,13 @@ export default function FinalItemsView({
 
                       {/* Quantity pricing multipliers */}
                       <td className="py-3 px-4 text-[10px] text-natural-text-muted font-medium">
-                        <b>£{item.unitPrice.toFixed(2)}</b> per {item.unitType === 'unit' ? 'unit' : item.unitType} <br />
+                        <b>{currencySymbol}{item.unitPrice.toFixed(2)}</b> per {item.unitType === 'unit' ? 'unit' : item.unitType} <br />
                         Qty: <b>{item.quantity}</b> {item.wastePercentage > 0 ? ` (+${item.wastePercentage}% waste)` : ""}
                       </td>
 
                       {/* Net Price output */}
                       <td className="py-3 px-4 text-right font-serif font-bold text-natural-primary text-sm">
-                        £{item.estimatedTotal.toFixed(2)}
+                        {currencySymbol}{item.estimatedTotal.toFixed(2)}
                       </td>
 
                     </tr>

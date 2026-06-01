@@ -18,6 +18,14 @@
   --color-natural-text-head: #3E3D39;
   --color-natural-text-muted: #8C8479;
   --color-natural-text-light: #C4BCB0;
+
+  /* Reduced corner radiuses (from 1rem/0.75rem down to 0.5rem/0.25rem) */
+  --radius-3xl: 0.75rem;
+  --radius-2xl: 0.5rem;
+  --radius-xl: 0.25rem;
+  --radius-lg: 0.2rem;
+  --radius-md: 0.15rem;
+  --radius-sm: 0.1rem;
 }
 
 /* Custom visual utilities for smooth interaction */

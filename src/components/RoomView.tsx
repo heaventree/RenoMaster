@@ -36,6 +36,7 @@ interface RoomViewProps {
   onEditItem: (item: Item) => void;
   onDeleteItem: (id: string) => void;
   statuses: CustomStatus[];
+  currencySymbol: string;
 }
 
 export default function RoomView({
@@ -53,16 +54,23 @@ export default function RoomView({
   onAddItem,
   onEditItem,
   onDeleteItem,
-  statuses
+  statuses,
+  currencySymbol
 }: RoomViewProps) {
   // Room editing trigger
   const [isAddingRoom, setIsAddingRoom] = useState(false);
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
+  const [isEditingRoom, setIsEditingRoom] = useState(false);
   
   // Room states inputs
   const [newRoomName, setNewRoomName] = useState("");
   const [newRoomDesc, setNewRoomDesc] = useState("");
   const [newRoomBudget, setNewRoomBudget] = useState<number | null>(null);
+
+  // Edit Room states inputs
+  const [editRoomName, setEditRoomName] = useState("");
+  const [editRoomDesc, setEditRoomDesc] = useState("");
+  const [editRoomBudget, setEditRoomBudget] = useState<number | null>(null);
 
   // New Category states
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -136,6 +144,21 @@ export default function RoomView({
     setNewRoomDesc("");
     setNewRoomBudget(null);
     setIsAddingRoom(false);
+  };
+
+  // Handle Room details editing submit
+  const handleUpdateRoomSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editRoomName.trim()) return;
+
+    onUpdateRoom({
+      ...activeRoom,
+      name: editRoomName.trim(),
+      description: editRoomDesc.trim(),
+      budget: editRoomBudget
+    });
+
+    setIsEditingRoom(false);
   };
 
   // Handle Category adding
@@ -258,11 +281,24 @@ export default function RoomView({
           </button>
         </div>
 
-        {/* Room general action board (duplicate, duplicate stats, delete) */}
+        {/* Room general action board (Edit details, duplicate, delete) */}
         <div className="flex gap-1.5 shrink-0">
           <button 
+            onClick={() => {
+              setEditRoomName(activeRoom.name);
+              setEditRoomDesc(activeRoom.description || "");
+              setEditRoomBudget(activeRoom.budget);
+              setIsEditingRoom(true);
+            }}
+            className="p-1.5 text-natural-text-muted hover:text-natural-primary hover:bg-natural-sidebar rounded-lg transition-colors border border-natural-border/60 cursor-pointer flex items-center gap-1 text-[11px] font-bold px-2 shadow-xs"
+            title="Edit Room details (Name, description, budget limit)"
+          >
+            <Edit3 size={13} />
+            <span>Edit Room</span>
+          </button>
+          <button 
             onClick={() => onDuplicateRoom(activeRoom.id)}
-            className="p-1.5 text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 rounded-lg transition-colors border border-zinc-100"
+            className="p-1.5 text-natural-text-muted hover:text-natural-primary hover:bg-natural-sidebar rounded-lg transition-colors border border-natural-border/60 cursor-pointer"
             title="Duplicate Room with Categories and Products"
           >
             <Copy size={13} />
@@ -273,7 +309,7 @@ export default function RoomView({
                 onDeleteRoom(activeRoom.id);
               }
             }}
-            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-red-100"
+            className="p-1.5 text-red-500 hover:text-red-750 hover:bg-red-50 rounded-lg transition-colors border border-red-100 cursor-pointer"
             title="Delete Room space"
           >
             <Trash2 size={13} />
@@ -296,7 +332,7 @@ export default function RoomView({
               {activeRoom.budget && (
                 <div className="bg-[#DDE2C6] text-natural-primary p-2 px-3 border border-natural-border/40 text-right rounded-xl shadow-xs">
                   <span className="text-[10px] font-bold uppercase text-natural-primary/80 block">Room Budget Limit</span>
-                  <span className="font-serif font-bold text-sm">£{activeRoom.budget.toLocaleString()}</span>
+                  <span className="font-serif font-bold text-sm">{currencySymbol}{activeRoom.budget.toLocaleString()}</span>
                 </div>
               )}
             </div>
@@ -696,10 +732,10 @@ export default function RoomView({
                             <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-natural-border/30">
                               <div className="text-right flex flex-col justify-center">
                                 <span className="font-serif font-bold text-xs text-natural-text-head">
-                                  £{item.estimatedTotal.toFixed(2)}
+                                  {currencySymbol}{item.estimatedTotal.toFixed(2)}
                                 </span>
                                 <span className="text-[10px] text-natural-text-muted font-semibold">
-                                  £{item.unitPrice}/{item.unitType === 'unit' ? 'pc' : item.unitType} × {item.quantity}
+                                  {currencySymbol}{item.unitPrice}/{item.unitType === 'unit' ? 'pc' : item.unitType} × {item.quantity}
                                   {item.wastePercentage > 0 ? ` (+${item.wastePercentage}% waste)` : ""}
                                 </span>
                               </div>
@@ -755,59 +791,121 @@ export default function RoomView({
 
       {/* MODAL: CREATE ROOM */}
       {isAddingRoom && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 backdrop-blur-subtle text-zinc-900">
-          <div className="bg-white rounded-2xl shadow-xl border border-zinc-200 w-full max-w-sm p-6 overflow-hidden">
-            <h3 className="font-display font-bold text-base text-zinc-900 pb-3 border-b border-zinc-100 mb-4">Create Room Space</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1C1E16]/60 backdrop-blur-xs text-natural-text-head">
+          <div className="bg-white rounded-2xl shadow-xl border border-natural-border w-full max-w-sm p-6 overflow-hidden">
+            <h3 className="font-serif font-bold text-base text-natural-text-head pb-3 border-b border-natural-border/60 mb-4">Create Room Space</h3>
             
             <form onSubmit={handleCreateRoomSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1 font-display">Room Name *</label>
+                <label className="block text-xs font-bold text-natural-text-head mb-1 font-serif">Room Name *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Master Bedroom"
                   value={newRoomName}
                   onChange={(e) => setNewRoomName(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 text-xs border border-natural-border rounded-lg bg-white text-natural-text-head focus:outline-none focus:border-natural-primary font-semibold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1 font-display">Description / Scope</label>
+                <label className="block text-xs font-bold text-natural-text-head mb-1 font-serif">Description / Scope</label>
                 <input
                   type="text"
                   placeholder="e.g. Victorian features restoration"
                   value={newRoomDesc}
                   onChange={(e) => setNewRoomDesc(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 text-xs border border-natural-border rounded-lg bg-white text-natural-text-head focus:outline-none focus:border-natural-primary font-semibold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1 font-display">Allocated Budget Limit (£)</label>
+                <label className="block text-xs font-bold text-natural-text-head mb-1 font-serif">Allocated Budget Limit ({currencySymbol})</label>
                 <input
                   type="number"
                   min="0"
                   placeholder="e.g. 5000"
                   value={newRoomBudget || ""}
                   onChange={(e) => setNewRoomBudget(e.target.value !== "" ? parseFloat(e.target.value) : null)}
-                  className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 text-xs border border-natural-border rounded-lg bg-white text-natural-text-head focus:outline-none focus:border-natural-primary font-semibold"
                 />
               </div>
 
-              <div className="flex gap-2 justify-end pt-2 border-t border-zinc-100">
+              <div className="flex gap-2 justify-end pt-2 border-t border-natural-border/60">
                 <button
                   type="button"
                   onClick={() => setIsAddingRoom(false)}
-                  className="px-4 py-2 text-xs font-semibold text-zinc-650 bg-white border border-zinc-200 rounded-lg"
+                  className="px-4 py-2 text-xs font-bold text-natural-text-head bg-white border border-natural-border hover:bg-natural-sidebar rounded-xl transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs"
+                  className="px-4 py-2 text-xs font-bold text-white bg-natural-primary hover:bg-natural-primary-hover rounded-xl shadow-xs cursor-pointer shadow-natural-primary/10"
                 >
                   Create Space
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT ROOM DETAILS */}
+      {isEditingRoom && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1C1E16]/60 backdrop-blur-xs text-natural-text-head">
+          <div className="bg-white rounded-2xl shadow-xl border border-natural-border w-full max-w-sm p-6 overflow-hidden">
+            <h2 className="font-serif font-bold text-base text-natural-text-head pb-3 border-b border-natural-border/60 mb-4">Edit Room details</h2>
+            
+            <form onSubmit={handleUpdateRoomSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-natural-text-head mb-1 font-serif">Room Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Living Area"
+                  value={editRoomName}
+                  onChange={(e) => setEditRoomName(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-natural-border rounded-lg bg-white text-natural-text-head focus:outline-none focus:border-natural-primary font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#3E3D39] mb-1 font-serif">Description / Scope of Work</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Flooring and feature wall detailing"
+                  value={editRoomDesc}
+                  onChange={(e) => setEditRoomDesc(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-natural-border rounded-lg bg-white text-natural-text-head focus:outline-none focus:border-natural-primary font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#3E3D39] mb-1 font-serif">Allocated Budget Limit ({currencySymbol})</label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="e.g. 10000"
+                  value={editRoomBudget || ""}
+                  onChange={(e) => setEditRoomBudget(e.target.value !== "" ? parseFloat(e.target.value) : null)}
+                  className="w-full px-3 py-2 text-xs border border-natural-border rounded-lg bg-white text-natural-text-head focus:outline-none focus:border-natural-primary font-semibold"
+                />
+              </div>
+
+              <div className="flex gap-2 justify-end pt-2 border-t border-natural-border/60">
+                <button
+                  type="button"
+                  onClick={() => setIsEditingRoom(false)}
+                  className="px-4 py-2 text-xs font-bold text-natural-text-head bg-white border border-natural-border hover:bg-natural-sidebar rounded-xl transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-xs font-bold text-white bg-natural-primary hover:bg-natural-primary-hover rounded-xl shadow-xs cursor-pointer shadow-natural-primary/10"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

@@ -11,6 +11,7 @@ interface ItemDialogProps {
   rooms: Room[];
   currentRoomId?: string;
   statuses: { name: string; color: string; isFinal: boolean }[];
+  currencySymbol: string;
 }
 
 export default function ItemDialog({
@@ -21,7 +22,8 @@ export default function ItemDialog({
   categories,
   rooms,
   currentRoomId,
-  statuses
+  statuses,
+  currencySymbol
 }: ItemDialogProps) {
   // Fields state
   const [name, setName] = useState("");
@@ -552,7 +554,7 @@ export default function ItemDialog({
                 <div>
                   <label className="block text-xs font-bold text-natural-text-head mb-1">Unit Cost (Net Price)</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-3 flex items-center text-natural-text-muted text-xs font-semibold">£</span>
+                    <span className="absolute inset-y-0 left-3 flex items-center text-natural-text-muted text-xs font-semibold">{currencySymbol}</span>
                     <input
                       type="number"
                       step="0.01"
@@ -613,7 +615,7 @@ export default function ItemDialog({
                 <div>
                   <label className="block text-xs font-bold text-natural-text-head mb-1">Delivery / Transport costs</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-3 flex items-center text-natural-text-muted text-xs font-semibold">£</span>
+                    <span className="absolute inset-y-0 left-3 flex items-center text-natural-text-muted text-xs font-semibold">{currencySymbol}</span>
                     <input
                       type="number"
                       step="0.01"
@@ -628,7 +630,7 @@ export default function ItemDialog({
                 <div>
                   <label className="block text-xs font-bold text-natural-text-head mb-1">Pre-tax Bulk Discount</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-3 flex items-center text-natural-text-muted text-xs font-semibold">£</span>
+                    <span className="absolute inset-y-0 left-3 flex items-center text-natural-text-muted text-xs font-semibold">{currencySymbol}</span>
                     <input
                       type="number"
                       step="0.01"
@@ -663,36 +665,36 @@ export default function ItemDialog({
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between text-natural-text-muted font-semibold">
                     <span>Base Subtotal ({quantity} {unitType === 'unit' ? 'units' : unitType}):</span>
-                    <span className="font-serif">£{(unitPrice * quantity).toFixed(2)}</span>
+                    <span className="font-serif">{currencySymbol}{(unitPrice * quantity).toFixed(2)}</span>
                   </div>
                   {wastePercentage > 0 && (
                     <div className="flex justify-between text-natural-text-muted font-semibold">
                       <span>Subtotal with {wastePercentage}% Waste ({qtyWithWaste} {unitType === 'unit' ? 'units' : unitType}):</span>
-                      <span className="font-serif">£{(unitPrice * qtyWithWaste).toFixed(2)}</span>
+                      <span className="font-serif">{currencySymbol}{(unitPrice * qtyWithWaste).toFixed(2)}</span>
                     </div>
                   )}
                   {tax > 0 && (
                     <div className="flex justify-between text-natural-text-muted font-semibold">
                       <span>VAT ({tax}%):</span>
-                      <span className="font-serif">£{((unitPrice * qtyWithWaste) * (tax/100)).toFixed(2)}</span>
+                      <span className="font-serif">{currencySymbol}{((unitPrice * qtyWithWaste) * (tax/100)).toFixed(2)}</span>
                     </div>
                   )}
                   {deliveryCost > 0 && (
                     <div className="flex justify-between text-natural-text-muted font-semibold">
                       <span>Delivery/Shipping Charges:</span>
-                      <span className="font-serif">+ £{deliveryCost.toFixed(2)}</span>
+                      <span className="font-serif">+ {currencySymbol}{deliveryCost.toFixed(2)}</span>
                     </div>
                   )}
                   {discount > 0 && (
                     <div className="flex justify-between text-natural-primary font-bold">
                       <span>Trade / Shop Discount Code:</span>
-                      <span className="font-serif">- £{discount.toFixed(2)}</span>
+                      <span className="font-serif">- {currencySymbol}{discount.toFixed(2)}</span>
                     </div>
                   )}
                   
                   <div className="flex justify-between text-sm font-bold text-[#3C3D2D] border-t border-natural-border/60 pt-3 mt-1">
                     <span>Estimated Total Costs:</span>
-                    <span className="text-natural-primary font-serif font-bold text-base">£{estimatedTotal.toFixed(2)}</span>
+                    <span className="text-natural-primary font-serif font-bold text-base">{currencySymbol}{estimatedTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -802,7 +804,7 @@ export default function ItemDialog({
           <div className="text-xs text-natural-text-muted">
             {estimatedTotal > 0 && (
               <span className="font-semibold text-natural-text-head">
-                Total Estimate: <b className="text-natural-primary font-serif font-bold text-sm">£{estimatedTotal.toFixed(2)}</b>
+                Total Estimate: <b className="text-natural-primary font-serif font-bold text-sm">{currencySymbol}{estimatedTotal.toFixed(2)}</b>
               </span>
             )}
           </div>

@@ -24,6 +24,9 @@ interface SidebarProps {
   onAddProject: (p: Omit<Project, 'id' | 'currency'>) => void;
   activeView: string;
   onSelectView: (view: string) => void;
+  currencySymbol: string;
+  showAddProjectModal: boolean;
+  setShowAddProjectModal: (show: boolean) => void;
 }
 
 export default function Sidebar({
@@ -32,9 +35,11 @@ export default function Sidebar({
   onSelectProject,
   onAddProject,
   activeView,
-  onSelectView
+  onSelectView,
+  currencySymbol,
+  showAddProjectModal,
+  setShowAddProjectModal
 }: SidebarProps) {
-  const [showAddProjectModal, setShowAddProjectModal] = useState(false);
   const [newProjName, setNewProjName] = useState("");
   const [newProjProp, setNewProjProp] = useState("");
   const [newProjBudget, setNewProjBudget] = useState<number>(20000);
@@ -80,7 +85,8 @@ export default function Sidebar({
   ];
 
   return (
-    <aside className="w-68 bg-natural-sidebar text-natural-text-main border-r border-natural-border flex flex-col h-full shrink-0">
+    <>
+      <aside className="hidden md:flex flex-col w-68 bg-natural-sidebar text-natural-text-main border-r border-natural-border h-full shrink-0">
       
       {/* Brand Title Frame */}
       <div className="p-6 border-b border-natural-border shrink-0">
@@ -123,7 +129,7 @@ export default function Sidebar({
             </div>
             <div className="flex items-center gap-1 text-natural-text-muted">
               <Coins size={11} />
-              <span>Budget: £{activeProject.budget.toLocaleString()}</span>
+              <span>Budget: {currencySymbol}{activeProject.budget.toLocaleString()}</span>
             </div>
           </div>
         )}
@@ -164,111 +170,111 @@ export default function Sidebar({
       <div className="p-4 border-t border-natural-border text-center shrink-0">
         <p className="text-[10px] text-natural-text-muted font-mono">Renovation Planner v1.5.0</p>
       </div>
+    </aside>
 
-      {/* MODAL: ADD PROJECT */}
-      {showAddProjectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 backdrop-blur-subtle text-zinc-900">
-          <div className="bg-white rounded-2xl shadow-xl border border-zinc-200 w-full max-w-md p-6 overflow-hidden">
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-100 mb-4">
-              <h3 className="font-display font-bold text-base text-zinc-900">New Renovation Project</h3>
-              <button
-                onClick={() => setShowAddProjectModal(false)}
-                className="text-zinc-400 hover:text-zinc-600 p-1 rounded-md"
-              >
-                <X size={16} />
-              </button>
+    {/* MODAL: ADD PROJECT */}
+    {showAddProjectModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 backdrop-blur-subtle text-zinc-900">
+        <div className="bg-white rounded-2xl shadow-xl border border-zinc-200 w-full max-w-md p-6 overflow-hidden">
+          <div className="flex items-center justify-between pb-4 border-b border-zinc-100 mb-4">
+            <h3 className="font-display font-bold text-base text-zinc-900">New Renovation Project</h3>
+            <button
+              onClick={() => setShowAddProjectModal(false)}
+              className="text-zinc-400 hover:text-zinc-600 p-1 rounded-md"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          <form onSubmit={handleCreateProject} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 mb-1">Project Name *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Victorian Terrace Refurbishment"
+                value={newProjName}
+                onChange={(e) => setNewProjName(e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
+              />
             </div>
 
-            <form onSubmit={handleCreateProject} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 mb-1">Property Name / Address</label>
+              <input
+                type="text"
+                placeholder="e.g. 124 Queens Road"
+                value={newProjProp}
+                onChange={(e) => setNewProjProp(e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">Project Name *</label>
+                <label className="block text-xs font-semibold text-zinc-700 mb-1">Overall Budget ({currencySymbol}) *</label>
                 <input
-                  type="text"
+                  type="number"
                   required
-                  placeholder="e.g. Victorian Terrace Refurbishment"
-                  value={newProjName}
-                  onChange={(e) => setNewProjName(e.target.value)}
+                  min="1"
+                  placeholder="e.g. 25000"
+                  value={newProjBudget}
+                  onChange={(e) => setNewProjBudget(Number(e.target.value) || 0)}
                   className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
                 />
               </div>
-
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">Property Name / Address</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 124 Queens Road"
-                  value={newProjProp}
-                  onChange={(e) => setNewProjProp(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">Overall Budget (£) *</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    placeholder="e.g. 25000"
-                    value={newProjBudget}
-                    onChange={(e) => setNewProjBudget(Number(e.target.value) || 0)}
-                    className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    value={newProjStart}
-                    onChange={(e) => setNewProjStart(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">Target Completion Date</label>
+                <label className="block text-xs font-semibold text-zinc-700 mb-1">Start Date</label>
                 <input
                   type="date"
-                  value={newProjEnd}
-                  onChange={(e) => setNewProjEnd(e.target.value)}
+                  value={newProjStart}
+                  onChange={(e) => setNewProjStart(e.target.value)}
                   className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">Project Scope / Summary</label>
-                <textarea
-                  rows={2}
-                  placeholder="Briefly state scope and team details..."
-                  value={newProjNotes}
-                  onChange={(e) => setNewProjNotes(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
-                />
-              </div>
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 mb-1">Target Completion Date</label>
+              <input
+                type="date"
+                value={newProjEnd}
+                onChange={(e) => setNewProjEnd(e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
+              />
+            </div>
 
-              <div className="flex gap-2 pt-2 justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowAddProjectModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-zinc-650 bg-white border border-zinc-200 hover:bg-zinc-50 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs"
-                >
-                  Create Project space
-                </button>
-              </div>
-            </form>
-          </div>
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 mb-1">Project Scope / Summary</label>
+              <textarea
+                rows={2}
+                placeholder="Briefly state scope and team details..."
+                value={newProjNotes}
+                onChange={(e) => setNewProjNotes(e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2 justify-end">
+              <button
+                type="button"
+                onClick={() => setShowAddProjectModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-zinc-650 bg-white border border-zinc-200 hover:bg-zinc-50 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs"
+              >
+                Create Project space
+              </button>
+            </div>
+          </form>
         </div>
-      )}
-
-    </aside>
+      </div>
+    )}
+  </>
   );
 }
 

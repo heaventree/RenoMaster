@@ -7,13 +7,15 @@ interface ComparisonViewProps {
   rooms: Room[];
   categories: Category[];
   statuses: CustomStatus[];
+  currencySymbol: string;
 }
 
 export default function ComparisonView({
   items,
   rooms,
   categories,
-  statuses
+  statuses,
+  currencySymbol
 }: ComparisonViewProps) {
   const [selectedCatName, setSelectedCatName] = useState("");
 
@@ -106,7 +108,7 @@ export default function ComparisonView({
                   </div>
                   <div className="flex justify-between py-2 text-zinc-500 font-mono">
                     <span>Base Unit Cost:</span>
-                    <b className="text-zinc-800">£{item.unitPrice.toFixed(2)} / {item.unitType}</b>
+                    <b className="text-zinc-800">{currencySymbol}{item.unitPrice.toFixed(2)} / {item.unitType}</b>
                   </div>
                   <div className="flex justify-between py-2 text-zinc-500 font-mono">
                     <span>Quantity Limit:</span>
@@ -118,7 +120,7 @@ export default function ComparisonView({
                   </div>
                   <div className="flex justify-between py-2 text-zinc-500 font-mono">
                     <span>Delivery charges:</span>
-                    <b className="text-zinc-800">£{item.deliveryCost.toFixed(2)}</b>
+                    <b className="text-zinc-800">{currencySymbol}{item.deliveryCost.toFixed(2)}</b>
                   </div>
                   <div className="flex justify-between py-2 text-zinc-500 font-mono">
                     <span>Tax rates (VAT %):</span>
@@ -126,7 +128,7 @@ export default function ComparisonView({
                   </div>
                   <div className="flex justify-between py-2.5 text-zinc-800 font-bold border-t border-zinc-200">
                     <span>Estimated Total:</span>
-                    <span className="text-emerald-700 font-mono text-xs">£{item.estimatedTotal.toFixed(2)}</span>
+                    <span className="text-emerald-700 font-mono text-xs">{currencySymbol}{item.estimatedTotal.toFixed(2)}</span>
                   </div>
                 </div>
 

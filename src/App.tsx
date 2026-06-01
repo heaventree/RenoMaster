@@ -18,7 +18,25 @@ import {
   MOCK_ITEMS, 
   DEFAULT_STATUSES 
 } from "./mockData";
-import { Sparkles, Calendar, Coins, Building, Info, AlertCircle, Plus } from "lucide-react";
+import { 
+  Sparkles, 
+  Calendar, 
+  Coins, 
+  Building, 
+  Info, 
+  AlertCircle, 
+  Plus,
+  LayoutDashboard,
+  Home,
+  KanbanSquare,
+  CheckSquare,
+  Menu,
+  Tag,
+  Table,
+  ClipboardList,
+  SlidersHorizontal,
+  ChevronDown
+} from "lucide-react";
 
 export default function App() {
   // STATE DEFINITIONS
@@ -32,11 +50,31 @@ export default function App() {
   const [items, setItems] = useState<Item[]>(MOCK_ITEMS);
   const [statuses] = useState<CustomStatus[]>(DEFAULT_STATUSES);
 
+  const [currency, setCurrency] = useState<string>(() => {
+    return localStorage.getItem("renovation_currency") || "GBP";
+  });
+
+  const getCurrencySymbol = (code: string) => {
+    const symbols: Record<string, string> = {
+      GBP: "£",
+      USD: "$",
+      EUR: "€",
+      JPY: "¥",
+      CAD: "C$",
+      AUD: "A$",
+    };
+    return symbols[code] || "£";
+  };
+
+  const currencySymbol = getCurrencySymbol(currency);
+
   const [activeView, setActiveView] = useState<string>("dashboard");
 
   // Dialog State controls
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+  const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
 
   // Active Selected Project helpers
   const activeProject = projects.find(p => p.id === activeProjectId) || projects[0];
@@ -245,8 +283,38 @@ export default function App() {
 
 
   return (
-    <div className="flex bg-natural-bg font-sans h-screen w-screen overflow-hidden">
+    <div className="flex flex-col md:flex-row bg-natural-bg font-sans h-screen w-screen overflow-hidden">
       
+      {/* Mobile Top Header Bar */}
+      <header className="md:hidden sticky top-0 left-0 right-0 h-14 bg-natural-sidebar border-b border-natural-border flex items-center justify-between px-4 z-30 shrink-0 no-print">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-natural-primary flex items-center justify-center font-serif font-bold text-white text-xs">
+            R
+          </div>
+          <div>
+            <h1 className="font-serif font-bold text-xs text-natural-text-head tracking-tight">Renovation Studio</h1>
+            <p className="text-[9px] text-natural-text-muted font-medium">Refurbishment Workspace</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Quick Add trigger */}
+          <button
+            onClick={handleStartAddItem}
+            className="p-1.5 bg-natural-primary text-white rounded-lg hover:bg-natural-primary-hover shadow-sm transition-colors cursor-pointer animate-pulse"
+            title="Add Product Choice"
+          >
+            <Plus size={14} />
+          </button>
+          
+          <button
+            onClick={() => setIsMobileMoreOpen(true)}
+            className="p-1.5 text-natural-text-muted hover:text-natural-text-head bg-white/40 rounded-lg border border-natural-border/30 cursor-pointer"
+          >
+            <SlidersHorizontal size={14} />
+          </button>
+        </div>
+      </header>
+
       {/* Side drawer Navigation projects container panel */}
       <Sidebar
         projects={projects}
@@ -255,13 +323,16 @@ export default function App() {
         onAddProject={handleAddProject}
         activeView={activeView}
         onSelectView={setActiveView}
+        currencySymbol={currencySymbol}
+        showAddProjectModal={showAddProjectModal}
+        setShowAddProjectModal={setShowAddProjectModal}
       />
 
       {/* Main viewport area */}
-      <main className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 custom-scrollbar">
         
         {/* UPPER STATUS HEAD WITH PROJECT METRICS FOR QUICK AUDIT */}
-        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between border-b border-natural-border pb-4 gap-4 no-print sm:items-stretch">
+        <div className="hidden md:flex flex-col md:flex-row md:items-center justify-between border-b border-natural-border pb-4 gap-4 no-print sm:items-stretch">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-natural-accent text-natural-primary rounded-xl shadow-xs">
               <Building size={20} />
@@ -279,9 +350,31 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2 select-none self-end flex-wrap">
+            {/* Currency selector */}
+            <div className="flex items-center gap-1 bg-white border border-natural-border px-2.5 py-1.5 rounded-xl shadow-sm text-xs font-semibold text-natural-text-muted">
+              <span className="text-[10px] font-bold text-natural-text-muted uppercase tracking-wider">Currency:</span>
+              <select
+                id="currency_selector"
+                value={currency}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCurrency(val);
+                  localStorage.setItem("renovation_currency", val);
+                }}
+                className="text-xs font-bold text-natural-text-head bg-transparent border-none outline-none focus:ring-0 cursor-pointer p-0 select-none"
+              >
+                <option value="GBP">GBP (£)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="JPY">JPY (¥)</option>
+                <option value="CAD">CAD (C$)</option>
+                <option value="AUD">AUD (A$)</option>
+              </select>
+            </div>
+
             <div className="p-2 px-3.5 bg-white border border-natural-border rounded-xl text-right shadow-sm">
               <span className="text-[9px] font-bold text-natural-text-muted uppercase tracking-widest block">Allocated Budget</span>
-              <span className="font-serif text-sm font-bold text-natural-text-head">£{activeProject.budget.toLocaleString()}</span>
+              <span className="font-serif text-sm font-bold text-natural-text-head">{currencySymbol}{activeProject.budget.toLocaleString()}</span>
             </div>
 
             <button
@@ -304,6 +397,7 @@ export default function App() {
               items={projectItems}
               onEditItem={handleStartEditItem}
               onNavigateToView={setActiveView}
+              currencySymbol={currencySymbol}
             />
           )}
 
@@ -324,6 +418,7 @@ export default function App() {
               onEditItem={handleStartEditItem}
               onDeleteItem={handleDeleteItem}
               statuses={statuses}
+              currencySymbol={currencySymbol}
             />
           )}
 
@@ -335,6 +430,7 @@ export default function App() {
               onEditItem={handleStartEditItem}
               onDeleteItem={handleDeleteItem}
               statuses={statuses}
+              currencySymbol={currencySymbol}
             />
           )}
 
@@ -345,6 +441,7 @@ export default function App() {
               categories={projectCategories}
               statuses={statuses}
               onEditItem={handleStartEditItem}
+              currencySymbol={currencySymbol}
             />
           )}
 
@@ -357,6 +454,7 @@ export default function App() {
               onUpdateItemDirectly={handleUpdateItemDirectly}
               onDeleteItem={handleDeleteItem}
               onEditItem={handleStartEditItem}
+              currencySymbol={currencySymbol}
             />
           )}
 
@@ -366,6 +464,7 @@ export default function App() {
               rooms={projectRooms}
               categories={projectCategories}
               statuses={statuses}
+              currencySymbol={currencySymbol}
             />
           )}
 
@@ -382,11 +481,184 @@ export default function App() {
               rooms={projectRooms}
               categories={projectCategories}
               statuses={statuses}
+              currencySymbol={currencySymbol}
             />
           )}
         </div>
 
       </main>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-natural-sidebar border-t border-natural-border flex items-center justify-around px-2 z-40 md:hidden no-print shadow-lg shadow-natural-text-main/10 rounded-t-xl">
+        <button
+          onClick={() => {
+            setActiveView("dashboard");
+            setIsMobileMoreOpen(false);
+          }}
+          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center transition-all cursor-pointer ${
+            activeView === "dashboard" && !isMobileMoreOpen
+              ? "text-natural-primary font-bold scale-102"
+              : "text-natural-text-muted hover:text-natural-text-head"
+          }`}
+        >
+          <LayoutDashboard size={18} />
+          <span className="text-[10px] mt-1 tracking-wider uppercase font-semibold">Dashboard</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveView("rooms");
+            setIsMobileMoreOpen(false);
+          }}
+          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center transition-all cursor-pointer ${
+            activeView === "rooms" && !isMobileMoreOpen
+              ? "text-natural-primary font-bold scale-102"
+              : "text-natural-text-muted hover:text-natural-text-head"
+          }`}
+        >
+          <Home size={18} />
+          <span className="text-[10px] mt-1 tracking-wider uppercase font-semibold">Spaces</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveView("board");
+            setIsMobileMoreOpen(false);
+          }}
+          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center transition-all cursor-pointer ${
+            activeView === "board" && !isMobileMoreOpen
+              ? "text-natural-primary font-bold scale-102"
+              : "text-natural-text-muted hover:text-natural-text-head"
+          }`}
+        >
+          <KanbanSquare size={18} />
+          <span className="text-[10px] mt-1 tracking-wider uppercase font-semibold">Moodboard</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveView("final");
+            setIsMobileMoreOpen(false);
+          }}
+          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center transition-all cursor-pointer ${
+            activeView === "final" && !isMobileMoreOpen
+              ? "text-natural-primary font-bold scale-102"
+              : "text-natural-text-muted hover:text-natural-text-head"
+          }`}
+        >
+          <CheckSquare size={18} />
+          <span className="text-[10px] mt-1 tracking-wider uppercase font-semibold">Procure</span>
+        </button>
+
+        <button
+          onClick={() => setIsMobileMoreOpen(prev => !prev)}
+          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center transition-all cursor-pointer ${
+            isMobileMoreOpen
+              ? "text-natural-primary font-bold scale-102"
+              : "text-natural-text-muted hover:text-natural-text-head"
+          }`}
+        >
+          <Menu size={18} />
+          <span className="text-[10px] mt-1 tracking-wider uppercase font-semibold">More</span>
+        </button>
+      </nav>
+
+      {/* Mobile Drawer Options Panel */}
+      {isMobileMoreOpen && (
+        <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/50 backdrop-blur-subtle md:hidden animate-fadeIn">
+          {/* Backdrop Dismiss Click Area */}
+          <div className="absolute inset-0 animate-fadeIn" onClick={() => setIsMobileMoreOpen(false)}></div>
+          
+          <div className="relative w-full max-h-[80vh] bg-white rounded-t-3xl border-t border-natural-border px-5 py-6 overflow-y-auto z-40 flex flex-col gap-5 animate-slideUp custom-scrollbar">
+            
+            {/* Header selector Indicator line */}
+            <div className="mx-auto w-12 h-1.5 bg-natural-border rounded-full hover:bg-natural-text-muted mb-2 shrink-0" onClick={() => setIsMobileMoreOpen(false)}></div>
+
+            <div className="flex justify-between items-center pb-2 border-b border-natural-border">
+              <h3 className="font-serif font-bold text-base text-natural-text-head">Additional Workspaces</h3>
+              <button 
+                onClick={() => setIsMobileMoreOpen(false)}
+                className="text-xs font-bold text-natural-primary hover:bg-natural-sidebar p-1.5 px-3 rounded-xl border border-natural-border transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+
+            {/* Other view navigations */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold text-natural-text-muted uppercase tracking-wider block px-1">Alternative Workspace Views</span>
+              <div className="grid grid-cols-2 gap-2.5">
+                {[
+                  { id: "categories", label: "Category Analytics", icon: Tag, desc: "Aggregated costs list" },
+                  { id: "table", label: "Sheet Ledger", icon: Table, desc: "Editable tabular grid" },
+                  { id: "comparison", label: "Spec Compare", icon: Sparkles, desc: "Evaluate options side-by-side" },
+                  { id: "canvas", label: "Color Palette", icon: ClipboardList, desc: "Aesthetic swatch canvas" },
+                ].map(item => {
+                  const Icon = item.icon;
+                  const isActive = activeView === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveView(item.id);
+                        setIsMobileMoreOpen(false);
+                      }}
+                      className={`flex flex-col items-start p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                        isActive
+                          ? "bg-natural-primary border-natural-primary text-white"
+                          : "bg-natural-bg/50 border-natural-border/60 hover:bg-natural-sidebar text-natural-text-head"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 font-bold text-xs font-serif">
+                        <Icon size={14} className={isActive ? "text-natural-accent" : "text-natural-primary"} />
+                        <span>{item.label}</span>
+                      </div>
+                      <span className={`text-[9px] mt-1 font-semibold ${isActive ? "text-white/80" : "text-natural-text-muted"}`}>
+                        {item.desc}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Project Switcher section */}
+            <div className="space-y-2 pt-2 border-t border-natural-border/40">
+              <span className="text-[10px] font-bold text-natural-text-muted uppercase tracking-wider block px-1">Switch Renovation Project</span>
+              <div className="relative">
+                <select
+                  value={activeProjectId}
+                  onChange={(e) => {
+                    setActiveProjectId(e.target.value);
+                    setIsMobileMoreOpen(false);
+                  }}
+                  className="w-full pl-3 pr-8 py-3 bg-natural-bg border border-natural-border text-natural-text-head text-xs font-bold rounded-xl focus:outline-none focus:border-natural-primary cursor-pointer appearance-none animate-fadeIn"
+                >
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id} className="text-[#3E3D39] font-semibold">{p.name}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-natural-primary">
+                  <ChevronDown size={14} />
+                </div>
+              </div>
+              
+              {/* Show Add Project trigger too */}
+              <button
+                onClick={() => {
+                  setIsMobileMoreOpen(false);
+                  setShowAddProjectModal(true);
+                }}
+                className="flex items-center justify-center gap-1.5 w-full mt-2 py-3 bg-natural-sidebar text-natural-primary hover:bg-[#DDE2C6] rounded-xl text-xs font-bold transition-colors cursor-pointer border border-natural-border/70"
+              >
+                <Plus size={13} />
+                Add New Project Space
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* COMPACT MODAL: PRODUCT DETAILS ADD / EDIT DIALOG */}
       {isItemDialogOpen && editingItem && (
@@ -402,6 +674,7 @@ export default function App() {
           rooms={projectRooms}
           currentRoomId={activeRoomId}
           statuses={statuses}
+          currencySymbol={currencySymbol}
         />
       )}
 

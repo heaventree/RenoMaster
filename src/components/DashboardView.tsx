@@ -21,6 +21,7 @@ interface DashboardViewProps {
   items: Item[];
   onEditItem: (item: Item) => void;
   onNavigateToView: (view: string) => void;
+  currencySymbol: string;
 }
 
 export default function DashboardView({
@@ -29,7 +30,8 @@ export default function DashboardView({
   categories,
   items,
   onEditItem,
-  onNavigateToView
+  onNavigateToView,
+  currencySymbol
 }: DashboardViewProps) {
   // FILTER RULES: Dashboard totals ONLY include status === 'Final' items!
   const finalItems = items.filter(item => item.status === "Final");
@@ -143,7 +145,7 @@ export default function DashboardView({
               <div>
                 <span className="font-serif font-bold block text-sm text-red-950">Project Budget Exceeded</span>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-red-700">
-                  The aggregate final selected materials currently stand at <b>£{totalFinalEstimatedCost.toLocaleString()}</b>, which exceeds your set budget parameter of £{totalBudget.toLocaleString()} by <b>£{Math.abs(budgetRemaining).toLocaleString()}</b>. Consider refining item decision statuses or quantities.
+                  The aggregate final selected materials currently stand at <b>{currencySymbol}{totalFinalEstimatedCost.toLocaleString()}</b>, which exceeds your set budget parameter of {currencySymbol}{totalBudget.toLocaleString()} by <b>{currencySymbol}{Math.abs(budgetRemaining).toLocaleString()}</b>. Consider refining item decision statuses or quantities.
                 </p>
               </div>
             </div>
@@ -159,7 +161,7 @@ export default function DashboardView({
                   The following rooms are exceeding their independent budgets:
                   {overBudgetRooms.map((r, i) => (
                     <span key={i} className="block mt-0.5 font-medium">
-                      • <b>{r.name}</b>: £{r.cost.toLocaleString()} used of £{r.budget.toLocaleString()} budget (Over by £{(r.cost - r.budget).toLocaleString()})
+                      • <b>{r.name}</b>: {currencySymbol}{r.cost.toLocaleString()} used of {currencySymbol}{r.budget.toLocaleString()} budget (Over by {currencySymbol}{(r.cost - r.budget).toLocaleString()})
                     </span>
                   ))}
                 </p>
@@ -176,9 +178,9 @@ export default function DashboardView({
         <div className="p-5 bg-white border border-natural-border rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between">
           <span className="text-[10px] uppercase font-bold tracking-wider text-natural-text-muted block mb-3">Overall Pricing Ledger</span>
           <div className="space-y-1.5">
-            <span className="text-2xl font-serif font-bold text-natural-text-head">£{totalFinalEstimatedCost.toLocaleString()}</span>
+            <span className="text-2xl font-serif font-bold text-natural-text-head">{currencySymbol}{totalFinalEstimatedCost.toLocaleString()}</span>
             <div className="flex justify-between text-xs text-natural-text-muted font-semibold">
-              <span>Actual: £{totalActualCost.toLocaleString()}</span>
+              <span>Actual: {currencySymbol}{totalActualCost.toLocaleString()}</span>
               <span className="text-natural-primary font-bold">{finalItems.length} items</span>
             </div>
           </div>
@@ -192,7 +194,7 @@ export default function DashboardView({
           <span className="text-[10px] uppercase font-bold tracking-wider text-natural-text-muted block mb-3">Allocated Remaining Budget</span>
           <div className="space-y-1.5">
             <span className={`text-2xl font-serif font-bold ${isOverBudget ? 'text-red-700' : 'text-natural-text-head'}`}>
-              {isOverBudget ? "-" : ""}£{Math.abs(budgetRemaining).toLocaleString()}
+              {isOverBudget ? "-" : ""}{currencySymbol}{Math.abs(budgetRemaining).toLocaleString()}
             </span>
             <div className="w-full bg-[#EAE3D8] rounded-full h-1.5 overflow-hidden mt-1">
               <div 
@@ -201,7 +203,7 @@ export default function DashboardView({
               ></div>
             </div>
             <div className="flex justify-between text-[11px] text-natural-text-muted mt-2 font-semibold">
-              <span>Budget: £{totalBudget.toLocaleString()}</span>
+              <span>Budget: {currencySymbol}{totalBudget.toLocaleString()}</span>
               <span className="text-natural-primary">{budgetUsedPercentage.toFixed(0)}% Utilized</span>
             </div>
           </div>
@@ -268,9 +270,9 @@ export default function DashboardView({
                     <div className="flex justify-between items-center text-xs">
                       <span className="font-semibold text-natural-text-head">{r.name}</span>
                       <div className="font-serif flex items-center gap-2">
-                        <span className="text-natural-text-head font-bold">£{r.cost.toLocaleString()}</span>
+                        <span className="text-natural-text-head font-bold">{currencySymbol}{r.cost.toLocaleString()}</span>
                         {r.budget > 0 && (
-                          <span className="text-[10px] text-natural-text-muted font-normal">/ budget £{r.budget.toLocaleString()}</span>
+                          <span className="text-[10px] text-natural-text-muted font-normal">/ budget {currencySymbol}{r.budget.toLocaleString()}</span>
                         )}
                       </div>
                     </div>
@@ -311,7 +313,7 @@ export default function DashboardView({
                         {cat.name}
                       </span>
                       <span className="font-serif text-natural-text-head text-right font-bold">
-                        £{cat.cost.toFixed(2)}
+                        {currencySymbol}{cat.cost.toFixed(2)}
                         <span className="text-[10px] text-natural-text-muted font-normal ml-1">({ratio.toFixed(0)}%)</span>
                       </span>
                     </div>
@@ -350,7 +352,7 @@ export default function DashboardView({
                   <div key={item.id} className="flex items-center justify-between p-2.5 bg-red-50/50 border border-red-100 rounded-xl text-xs gap-3">
                     <div className="overflow-hidden">
                       <span className="font-semibold text-red-900 truncate block">{item.name}</span>
-                      <span className="text-[10px] text-red-600 font-medium">Missing Price: Currently listed at £0.00</span>
+                      <span className="text-[10px] text-red-600 font-medium">Missing Price: Currently listed at {currencySymbol}0.00</span>
                     </div>
                     <button
                       onClick={() => onEditItem(item)}
@@ -422,7 +424,7 @@ export default function DashboardView({
                 <div key={idx} className="flex items-center justify-between p-2.5 bg-natural-bg border border-natural-border rounded-xl text-xs">
                   <span className="font-semibold text-natural-text-head">{sup.name}</span>
                   <span className="font-serif font-bold text-natural-primary bg-natural-accent/50 p-1 px-2.5 rounded-lg border border-natural-accent/70">
-                    £{sup.cost.toFixed(2)}
+                    {currencySymbol}{sup.cost.toFixed(2)}
                   </span>
                 </div>
               ))
@@ -493,11 +495,11 @@ export default function DashboardView({
                         {item.supplier || "—"}
                       </td>
                       <td className="py-3 px-4 text-natural-text-muted text-[11px] font-semibold">
-                        £{item.unitPrice} per {item.unitType === 'unit' ? 'unit' : item.unitType} <br />
+                        {currencySymbol}{item.unitPrice} per {item.unitType === 'unit' ? 'unit' : item.unitType} <br />
                         Qty: <b>{item.quantity}</b> {item.wastePercentage > 0 ? `(+${item.wastePercentage}% waste)` : ''}
                       </td>
                       <td className="py-3 px-4 text-right font-serif font-bold text-natural-primary">
-                        £{item.estimatedTotal.toFixed(2)}
+                        {currencySymbol}{item.estimatedTotal.toFixed(2)}
                       </td>
                       <td className="py-3 px-4 text-center">
                         {item.productUrl ? (

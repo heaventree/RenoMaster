@@ -16,6 +16,7 @@ interface BoardViewProps {
   categories: Category[];
   statuses: CustomStatus[];
   onEditItem: (item: Item) => void;
+  currencySymbol: string;
 }
 
 export default function BoardView({
@@ -23,7 +24,8 @@ export default function BoardView({
   rooms,
   categories,
   statuses,
-  onEditItem
+  onEditItem,
+  currencySymbol
 }: BoardViewProps) {
   const [roomFilter, setRoomFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -143,7 +145,7 @@ export default function BoardView({
                   <div className="flex items-center justify-between border-t border-zinc-50 pt-2.5">
                     <div className="text-left font-mono">
                       <span className="text-zinc-400 text-[10px] block">Estimates:</span>
-                      <span className="font-bold text-zinc-900 text-xs">£{item.estimatedTotal.toFixed(2)}</span>
+                      <span className="font-bold text-zinc-900 text-xs">{currencySymbol}{item.estimatedTotal.toFixed(2)}</span>
                     </div>
 
                     <div className="flex gap-1">

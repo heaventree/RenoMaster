@@ -9,6 +9,7 @@ interface CategoryViewProps {
   onEditItem: (item: Item) => void;
   onDeleteItem: (id: string) => void;
   statuses: CustomStatus[];
+  currencySymbol: string;
 }
 
 export default function CategoryView({
@@ -17,7 +18,8 @@ export default function CategoryView({
   items,
   onEditItem,
   onDeleteItem,
-  statuses
+  statuses,
+  currencySymbol
 }: CategoryViewProps) {
   const [filterRoomId, setFilterRoomId] = useState("all");
 
@@ -105,7 +107,7 @@ export default function CategoryView({
                             }`}>
                               {item.status}
                             </span>
-                            <span className="font-mono font-bold text-zinc-950">£{item.estimatedTotal.toFixed(2)}</span>
+                            <span className="font-mono font-bold text-zinc-950">{currencySymbol}{item.estimatedTotal.toFixed(2)}</span>
                           </div>
                         </div>
 

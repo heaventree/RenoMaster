@@ -10,6 +10,7 @@ interface TableViewProps {
   onUpdateItemDirectly: (item: Item) => void;
   onDeleteItem: (id: string) => void;
   onEditItem: (item: Item) => void;
+  currencySymbol: string;
 }
 
 export default function TableView({
@@ -19,7 +20,8 @@ export default function TableView({
   statuses,
   onUpdateItemDirectly,
   onDeleteItem,
-  onEditItem
+  onEditItem,
+  currencySymbol
 }: TableViewProps) {
   
   // Direct inline edits updates handles
@@ -90,10 +92,10 @@ export default function TableView({
                   <th className="py-3 px-4">Room Space</th>
                   <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Unit Cost (£)</th>
+                  <th className="py-3 px-4">Unit Cost ({currencySymbol})</th>
                   <th className="py-3 px-4">Qty</th>
                   <th className="py-3 px-4">Waste %</th>
-                  <th className="py-3 px-4">Total Estimate (£)</th>
+                  <th className="py-3 px-4">Total Estimate ({currencySymbol})</th>
                   <th className="py-3 px-4 text-center">Reference</th>
                   <th className="py-3 px-4 text-center">Actions</th>
                 </tr>
@@ -138,7 +140,7 @@ export default function TableView({
                       {/* Unit Price */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-1">
-                          <span className="text-zinc-400">£</span>
+                          <span className="text-zinc-400">{currencySymbol}</span>
                           <input
                             type="number"
                             step="0.01"
@@ -167,7 +169,7 @@ export default function TableView({
                       
                       {/* Total */}
                       <td className="py-3 px-4 font-mono font-bold text-emerald-800">
-                        £{item.estimatedTotal.toFixed(2)}
+                        {currencySymbol}{item.estimatedTotal.toFixed(2)}
                       </td>
                       
                       {/* Link */}
