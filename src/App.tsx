@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import DashboardView from "./components/DashboardView";
 import RoomView from "./components/RoomView";
@@ -50,6 +50,35 @@ export default function App() {
   const [items, setItems] = useState<Item[]>(MOCK_ITEMS);
   const [statuses] = useState<CustomStatus[]>(DEFAULT_STATUSES);
 
+  // Synchronize on mounts
+  useEffect(() => {
+    fetch("/api/all-data")
+      .then(res => res.json())
+      .then(data => {
+        if (data.projects && data.projects.length > 0) {
+          setProjects(data.projects);
+          setActiveProjectId(prev => {
+            const hasPrev = data.projects.some((p: any) => p.id === prev);
+            return hasPrev ? prev : data.projects[0].id;
+          });
+        }
+        if (data.rooms) {
+          setRooms(data.rooms);
+          setActiveRoomId(prev => {
+            const hasPrev = data.rooms.some((r: any) => r.id === prev);
+            return hasPrev ? prev : (data.rooms.length > 0 ? data.rooms[0].id : "");
+          });
+        }
+        if (data.categories) {
+          setCategories(data.categories);
+        }
+        if (data.items) {
+          setItems(data.items);
+        }
+      })
+      .catch(err => console.error("Error fetching all database data:", err));
+  }, []);
+
   const [currency, setCurrency] = useState<string>(() => {
     return localStorage.getItem("renovation_currency") || "GBP";
   });
@@ -93,6 +122,13 @@ export default function App() {
       id: freshId,
       currency: "GBP"
     };
+
+    fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(constructed)
+    }).catch(err => console.error("Database project add failed:", err));
+
     setProjects(prev => [...prev, constructed]);
     setActiveProjectId(freshId);
 
@@ -110,6 +146,13 @@ export default function App() {
         floorArea: 12, wallArea: 34, ceilingArea: 12
       }
     };
+
+    fetch("/api/rooms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bootRoom)
+    }).catch(err => console.error("Database room bootstrap failed:", err));
+
     setRooms(prev => [...prev, bootRoom]);
     setActiveRoomId(defaultRoomId);
 
@@ -122,6 +165,13 @@ export default function App() {
       description: "Laminates and timber alternatives",
       defaultUnitType: "sq_m"
     };
+
+    fetch("/api/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bootCat)
+    }).catch(err => console.error("Database category bootstrap failed:", err));
+
     setCategories(prev => [...prev, bootCat]);
   };
 
@@ -133,20 +183,41 @@ export default function App() {
       id: freshId,
       projectId: activeProjectId
     };
+
+    fetch("/api/rooms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(constructed)
+    }).catch(err => console.error("Database room add failed:", err));
+
     setRooms(prev => [...prev, constructed]);
     setActiveRoomId(freshId);
 
     // Bootstrap single default Category
-    setCategories(prev => [...prev, {
+    const bootCat = {
       id: `cat_${Date.now()}`,
       roomId: freshId,
       name: "General Fittings",
       description: "",
       defaultUnitType: "unit"
-    }]);
+    };
+
+    fetch("/api/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bootCat)
+    }).catch(err => console.error("Database category add failed:", err));
+
+    setCategories(prev => [...prev, bootCat]);
   };
 
   const handleUpdateRoom = (updatedRoom: Room) => {
+    fetch(`/api/rooms/${updatedRoom.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedRoom)
+    }).catch(err => console.error("Database room update failed:", err));
+
     setRooms(prev => prev.map(r => r.id === updatedRoom.id ? updatedRoom : r));
   };
 
@@ -161,6 +232,12 @@ export default function App() {
       name: `${originalRoom.name} (Copy)`
     };
 
+    fetch("/api/rooms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(clonedRoom)
+    }).catch(err => console.error("Database room duplication failed:", err));
+
     // Find original categories & duplicate them mapping to newly created room space
     const originalCats = categories.filter(c => c.roomId === roomIdToDuplicate);
     const catIdMapping: Record<string, string> = {};
@@ -168,22 +245,40 @@ export default function App() {
     const clonedCats = originalCats.map(cat => {
       const freshCatId = `cat_dup_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
       catIdMapping[cat.id] = freshCatId;
-      return {
+      const freshCat = {
         ...cat,
         id: freshCatId,
         roomId: duplicatedRoomId
       };
+
+      fetch("/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(freshCat)
+      }).catch(err => console.error("Database duplicated category add failed:", err));
+
+      return freshCat;
     });
 
     // Find original items map and clone matching new categories id mapping
     const originalItems = items.filter(it => it.roomId === roomIdToDuplicate);
-    const clonedItems = originalItems.map(item => ({
-      ...item,
-      id: `item_dup_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-      roomId: duplicatedRoomId,
-      categoryId: catIdMapping[item.categoryId] || item.categoryId,
-      createdAt: new Date().toISOString().split("T")[0]
-    }));
+    const clonedItems = originalItems.map(item => {
+      const freshItem = {
+        ...item,
+        id: `item_dup_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+        roomId: duplicatedRoomId,
+        categoryId: catIdMapping[item.categoryId] || item.categoryId,
+        createdAt: new Date().toISOString().split("T")[0]
+      };
+
+      fetch("/api/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(freshItem)
+      }).catch(err => console.error("Database duplicated item add failed:", err));
+
+      return freshItem;
+    });
 
     setRooms(prev => [...prev, clonedRoom]);
     setCategories(prev => [...prev, ...clonedCats]);
@@ -192,6 +287,21 @@ export default function App() {
   };
 
   const handleDeleteRoom = (roomIdToDelete: string) => {
+    fetch(`/api/rooms/${roomIdToDelete}`, {
+      method: "DELETE"
+    }).catch(err => console.error("Database room delete failed:", err));
+
+    // Cascade delete related categories and items in database triggers too
+    const catsToDelete = categories.filter(c => c.roomId === roomIdToDelete);
+    catsToDelete.forEach(c => {
+      fetch(`/api/categories/${c.id}`, { method: "DELETE" }).catch(err => console.error("Cascade cat delete failed:", err));
+    });
+
+    const itemsToDelete = items.filter(it => it.roomId === roomIdToDelete);
+    itemsToDelete.forEach(it => {
+      fetch(`/api/items/${it.id}`, { method: "DELETE" }).catch(err => console.error("Cascade item delete failed:", err));
+    });
+
     setRooms(prev => prev.filter(r => r.id !== roomIdToDelete));
     setCategories(prev => prev.filter(c => c.roomId !== roomIdToDelete));
     setItems(prev => prev.filter(it => it.roomId !== roomIdToDelete));
@@ -210,12 +320,22 @@ export default function App() {
       ...newCat,
       id: freshId
     };
+
+    fetch("/api/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(constructed)
+    }).catch(err => console.error("Database category creation failed:", err));
+
     setCategories(prev => [...prev, constructed]);
   };
 
   const handleDeleteCategory = (catIdToDelete: string) => {
+    fetch(`/api/categories/${catIdToDelete}`, {
+      method: "DELETE"
+    }).catch(err => console.error("Database category delete failed:", err));
+
     setCategories(prev => prev.filter(c => c.id !== catIdToDelete));
-    // Items inside can match Unassigned placeholder or general category
   };
 
   // HANDLERS FOR ITEMS
@@ -265,8 +385,20 @@ export default function App() {
   const handleSaveItem = (saved: Item) => {
     const isNew = !items.some(it => it.id === saved.id);
     if (isNew) {
+      fetch("/api/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(saved)
+      }).catch(err => console.error("Database item creation failed:", err));
+
       setItems(prev => [...prev, saved]);
     } else {
+      fetch(`/api/items/${saved.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(saved)
+      }).catch(err => console.error("Database item update failed:", err));
+
       setItems(prev => prev.map(it => it.id === saved.id ? saved : it));
     }
     setIsItemDialogOpen(false);
@@ -274,10 +406,20 @@ export default function App() {
   };
 
   const handleUpdateItemDirectly = (updated: Item) => {
+    fetch(`/api/items/${updated.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updated)
+    }).catch(err => console.error("Database item inline update failed:", err));
+
     setItems(prev => prev.map(it => it.id === updated.id ? updated : it));
   };
 
   const handleDeleteItem = (itemIdToDelete: string) => {
+    fetch(`/api/items/${itemIdToDelete}`, {
+      method: "DELETE"
+    }).catch(err => console.error("Database item delete failed:", err));
+
     setItems(prev => prev.filter(it => it.id !== itemIdToDelete));
   };
 
